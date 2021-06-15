@@ -5,6 +5,10 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && isCurrentUser(userId);
     }
 
+    match /users/{userId}/alerts/{alertId} {
+      allow read, write, delete: if isSignedIn() && isCurrentUser(userId);
+    }
+
     // -------- Helper functions ----------
     function isSignedIn() {
       return request.auth != null;
