@@ -125,3 +125,14 @@ export const test_evaluateAlerts = functions.https.onRequest(async (req, res) =>
 
   res.sendStatus(200);
 });
+
+/**
+ * Add document id to the alert document.
+ * This is required to find an individual alert from a collection group during alert evaluation.
+ */
+export const addIdToAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
+  .onCreate((snap, context) => {
+    return snap.ref.update({
+      id: context.params.alertId
+    });
+  });
