@@ -1,11 +1,11 @@
-export type ContactPreferences = {
-  email: string;
-  sms: string;
-};
-
 export type Operation = 'greater-than' | 'less-than' | 'equals';
 type Unit = 'cumecs' | 'metres';
 export type Type = 'flow' | 'stage_height';
+
+export type ContactPreferences = {
+  email: string;
+  includeEmail: boolean;
+};
 
 export type Threshold = {
   operation: Operation;

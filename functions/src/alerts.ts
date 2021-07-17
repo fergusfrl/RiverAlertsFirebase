@@ -74,7 +74,7 @@ const sendEmailAlert = async (to: string, alert: Alert, threshold: Threshold, cu
 const evauluateAlert = async (observation: Observable, alert: Alert) => {
   const { id, threshold, contactPreferences, active } = alert;
   const { operation, value, units } = threshold;
-  const { email } = contactPreferences;
+  const { email, includeEmail } = contactPreferences;
 
   if (observation.units !== units) return;
 
@@ -85,12 +85,15 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
       (operation === 'less-than' && value > observation.latest_value)
     ) { 
       await setAlertActiveStatus(id, true);
-      sendEmailAlert(email, alert, threshold, observation)
-        .then(() => {
-          console.log(`alert sent to ${email}`);
-        }).catch(() => {
-          console.log('Something went wrong sending email')
-        });
+
+      if (includeEmail) {
+        sendEmailAlert(email, alert, threshold, observation)
+          .then(() => {
+            console.log(`alert sent to ${email}`);
+          }).catch(() => {
+            console.log('Something went wrong sending email')
+          });
+      }
     }
   } else {
     if (
