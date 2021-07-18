@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import * as sgMail from '@sendgrid/mail';
 import axios from 'axios';
 import { PubSub } from '@google-cloud/pubsub';
-import { Alert, AlertData, Gauge, Observable, Operation, Type } from './types';
+import { Alert, Gauge, Observable, Operation, Type } from './types';
 import { SEND_EMAIL } from './constants';
 
 const firestore = admin.firestore();
@@ -52,7 +52,7 @@ const typeHandlers: Record<Type, string> = {
 
 export const handleSendEmail = functions.pubsub.topic(SEND_EMAIL).onPublish((payload) => {
   const { templateData, to } = payload.json;
-  sgMail.send({
+  return sgMail.send({
     to,
     from: config.sendgrid.from,
     templateId: config.sendgrid.template_id,
@@ -69,7 +69,7 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
   const { operation, value, units } = threshold;
   const { email, includeEmail } = contactPreference;
 
-  if (observation.units !== units) return;
+  if (observation.units.toLowerCase() !== units.toLowerCase()) return;
 
   if (!active) {
     if (
@@ -80,6 +80,7 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
       await setAlertActiveStatus(id, true);
 
       if (includeEmail) {
+        console.log('Publishing to SEND_EMAIL topic');
         pubSubClient.topic(SEND_EMAIL).publishJSON({
           to: email,
           templateData: {
@@ -122,9 +123,7 @@ export const test_evaluateAlerts = functions.https.onRequest(async (req, res) =>
   const gauges: Gauge[] = gaugeRes.data.features;
 
   alerts.docs.forEach(alertRef => {
-    const alertDocId = alertRef.id;
-    const alertData: AlertData = alertRef.data() as AlertData;
-    const alert: Alert = { ...alertData, id: alertDocId };
+    const alert: Alert = alertRef.data() as Alert;
     const targetGauge: Gauge | undefined = gauges.find((gauge: Gauge) => gauge.id === alert.gauge.id);
 
     targetGauge?.observables.forEach((observation: Observable) => evauluateAlert(observation, alert));
