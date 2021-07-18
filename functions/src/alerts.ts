@@ -114,10 +114,7 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
 /**
  * Every 15 Minutes.
  */
-// export const evauluateAlerts = functions.pubsub.schedule('*/15 * * * *').onRun(async () => {
-
-// TODO: revert to scheduled run
-export const test_evaluateAlerts = functions.https.onRequest(async (req, res) => {
+export const evaluateAlerts = functions.pubsub.schedule('*/15 * * * *').onRun(async () => {
   // Multiple requests in parallel
   const [gaugeRes, alerts] = await Promise.all([ getGauges(), getAlerts() ]);
   const gauges: Gauge[] = gaugeRes.data.features;
@@ -129,7 +126,7 @@ export const test_evaluateAlerts = functions.https.onRequest(async (req, res) =>
     targetGauge?.observables.forEach((observation: Observable) => evauluateAlert(observation, alert));
   });
 
-  res.sendStatus(200);
+  return 200;
 });
 
 /**
