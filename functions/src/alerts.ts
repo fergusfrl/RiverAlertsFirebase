@@ -2,10 +2,13 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as sgMail from '@sendgrid/mail';
 import axios from 'axios';
-import { Alert, AlertData, Gauge, Observable, Operation, Threshold, Type } from './types';
+import { PubSub } from '@google-cloud/pubsub';
+import { Alert, AlertData, Gauge, Observable, Operation, Type } from './types';
+import { SEND_EMAIL } from './constants';
 
 const firestore = admin.firestore();
 const config = functions.config();
+const pubSubClient: PubSub = new PubSub();
 
 sgMail.setApiKey(config.sendgrid.api);
 
@@ -47,29 +50,19 @@ const typeHandlers: Record<Type, string> = {
   stage_height: 'height',
 };
 
-// TODO: replace with pubsub to avoid blocking
-const sendEmailAlert = async (to: string, alert: Alert, threshold: Threshold, currentVals: Observable) => {
-  const { name, description } = alert;
-  const { name: gaugeName } = alert.gauge;
-  const { units, value: thresholdValue, operation } = threshold;
-  const { latest_value: currentValue, type } = currentVals;
-
-  return sgMail.send({
+export const handleSendEmail = functions.pubsub.topic(SEND_EMAIL).onPublish((payload) => {
+  const { templateData, to } = payload.json;
+  sgMail.send({
     to,
     from: config.sendgrid.from,
     templateId: config.sendgrid.template_id,
-    dynamicTemplateData: {
-      name,
-      description,
-      type: typeToHumanReadable(type),
-      gaugeName,
-      currentValue,
-      units,
-      operationString: operationToHumanReadable(operation),
-      thresholdValue,
-    }
+    dynamicTemplateData: templateData,
+  }).then(() => {
+    console.log(`alert sent to ${to}`);
+  }).catch(() => {
+    console.log('Something went wrong sending email')
   });
-}
+});
 
 const evauluateAlert = async (observation: Observable, alert: Alert) => {
   const { id, threshold, contactPreferences, active } = alert;
@@ -87,12 +80,19 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
       await setAlertActiveStatus(id, true);
 
       if (includeEmail) {
-        sendEmailAlert(email, alert, threshold, observation)
-          .then(() => {
-            console.log(`alert sent to ${email}`);
-          }).catch(() => {
-            console.log('Something went wrong sending email')
-          });
+        pubSubClient.topic(SEND_EMAIL).publishJSON({
+          to: email,
+          templateData: {
+            name: alert.name,
+            description: alert.description,
+            type: typeToHumanReadable(observation.type),
+            gaugeName: alert.gauge.name,
+            currentValue: observation.latest_value,
+            units: observation.units,
+            operationString: operationToHumanReadable(operation),
+            thresholdValue: value,
+          },
+        });         
       }
     }
   } else {
