@@ -29,7 +29,7 @@ export type AlertData = {
   name: string;
   description: string;
   active: boolean;
-  contactPreferences: ContactPreferences;
+  contactPreference: ContactPreferences;
   threshold: Threshold;
   gauge: Gauge;
 };

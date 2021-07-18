@@ -65,9 +65,9 @@ export const handleSendEmail = functions.pubsub.topic(SEND_EMAIL).onPublish((pay
 });
 
 const evauluateAlert = async (observation: Observable, alert: Alert) => {
-  const { id, threshold, contactPreferences, active } = alert;
+  const { id, threshold, contactPreference, active } = alert;
   const { operation, value, units } = threshold;
-  const { email, includeEmail } = contactPreferences;
+  const { email, includeEmail } = contactPreference;
 
   if (observation.units !== units) return;
 
@@ -92,7 +92,11 @@ const evauluateAlert = async (observation: Observable, alert: Alert) => {
             operationString: operationToHumanReadable(operation),
             thresholdValue: value,
           },
-        });         
+        }).then(() => {
+          console.log('Email send published successfully.');
+        }).catch(() => {
+          console.error('Email send publish failed.');
+        });
       }
     }
   } else {
