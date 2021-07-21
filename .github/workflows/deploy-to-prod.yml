@@ -9,16 +9,11 @@ on:
       - "master"
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     env:
       working-directory: ./functions
 
-    strategy:
-      fail-fast: true
-      matrix:
-        node-version: [10.x]
-    
     steps:
     - uses: actions/checkout@v2
 
