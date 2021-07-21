@@ -6,7 +6,8 @@ service cloud.firestore {
     }
 
     match /users/{userId}/alerts/{alertId} {
-      allow read, write, delete: if isSignedIn() && isCurrentUser(userId);
+      allow read, update, delete: if isSignedIn() && isCurrentUser(userId);
+      allow create: if isSignedIn() && isCurrentUser(userId) && canAddAlert(userId);
     }
 
     // -------- Helper functions ----------
@@ -16,6 +17,10 @@ service cloud.firestore {
 
     function isCurrentUser(userId) {
       return request.auth.uid == userId;
+    }
+
+    function canAddAlert(userId) {
+      get(/users/$(userId)).data.alertCount < 3
     }
   }
 }

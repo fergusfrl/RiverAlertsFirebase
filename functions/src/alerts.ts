@@ -135,7 +135,21 @@ export const evaluateAlerts = functions.pubsub.schedule('*/15 * * * *').onRun(as
  */
 export const addIdToAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
   .onCreate((snap, context) => {
+    // add alert
     return snap.ref.update({
       id: context.params.alertId
+    }).then(() => {
+      // increment alert count
+      const userDocRef = firestore.collection('users').doc(context.params.userId);
+      userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(1) });
     });
+  });
+
+/**
+ * Decrement alert count/
+ */
+export const removeAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
+  .onDelete((_, context) => {
+    const userDocRef = firestore.collection('users').doc(context.params.userId);
+    return userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(-1) });
   });

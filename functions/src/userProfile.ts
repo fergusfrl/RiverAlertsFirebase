@@ -14,5 +14,6 @@ const firestore = admin.firestore();
       first: '',
       last: '',
     },
+    alertCount: 0,
   })
 });
