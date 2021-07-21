@@ -141,7 +141,7 @@ export const addIdToAlert = functions.firestore.document('users/{userId}/alerts/
     }).then(() => {
       // increment alert count
       const userDocRef = firestore.collection('users').doc(context.params.userId);
-      userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(1) });
+      return userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(1) });
     });
   });
 
