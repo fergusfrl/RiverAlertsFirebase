@@ -1,0 +1,42 @@
+name: Deploy River Alerts Firebase to Production
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./functions
+
+    strategy:
+      fail-fast: true
+      matrix:
+        node-version: [10.x]
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    # 1. Checkout code
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    # 2. Install dependencies
+    - name: install dependencies
+      run: npm install
+      working-directory: ${{ env.working-directory }}
+
+    # 3. Install Firebase
+    - name: install firebase
+      run: npm i firebase-tools -g
+
+    # 4. Deploy to Firebase
+    - name: Deploy
+      run: firebase deploy --token ${{ secrets.GCLOUD_TOKEN }}
