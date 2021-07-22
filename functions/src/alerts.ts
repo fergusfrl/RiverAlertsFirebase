@@ -129,27 +129,29 @@ export const evaluateAlerts = functions.pubsub.schedule('*/15 * * * *').onRun(as
   return 200;
 });
 
+const incrementAlertCount = (userId: string, incrementAmount: number): Promise<admin.firestore.WriteResult> => {
+  const userDocRef = firestore.collection('users').doc(userId);
+  return userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(incrementAmount) });
+};
+
 /**
  * Add document id to the alert document.
  * This is required to find an individual alert from a collection group during alert evaluation.
  */
-export const addIdToAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
+export const addAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
   .onCreate((snap, context) => {
-    // add alert
-    return snap.ref.update({
-      id: context.params.alertId
-    }).then(() => {
-      // increment alert count
-      const userDocRef = firestore.collection('users').doc(context.params.userId);
-      return userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(1) });
-    });
+    return Promise.all([
+      // increment alert count.
+      incrementAlertCount(context.params.userId, 1),
+      // add id to alert.
+      snap.ref.update({ id: context.params.alertId })
+    ])
   });
 
 /**
- * Decrement alert count/
+ * Handle alert delete.
  */
 export const removeAlert = functions.firestore.document('users/{userId}/alerts/{alertId}')
   .onDelete((_, context) => {
-    const userDocRef = firestore.collection('users').doc(context.params.userId);
-    return userDocRef.update({ alertCount: admin.firestore.FieldValue.increment(-1) });
+    return incrementAlertCount(context.params.userId, -1);
   });
