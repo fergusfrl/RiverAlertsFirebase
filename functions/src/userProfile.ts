@@ -17,3 +17,17 @@ const firestore = admin.firestore();
     alertCount: 0,
   })
 });
+
+export const handleProfileChange = functions.firestore.document('users/{userId}').onUpdate((querySnap) => {
+  const { beforeEmail } = querySnap.before.data();
+  const afterRef = querySnap.after;
+  const { afterEmail } = afterRef.data();
+
+  if (beforeEmail !== afterEmail) {
+    afterRef.ref.collection('alerts').get().then(snap => {
+      snap.docs.forEach(doc => {
+        doc.ref.update({ email: afterEmail });
+      });
+    });
+  }
+});
