@@ -24,10 +24,12 @@ export const handleProfileChange = functions.firestore.document('users/{userId}'
   const { afterEmail } = afterRef.data();
 
   if (beforeEmail !== afterEmail) {
-    afterRef.ref.collection('alerts').get().then(snap => {
+    return afterRef.ref.collection('alerts').get().then(snap => {
       snap.docs.forEach(doc => {
         doc.ref.update({ email: afterEmail });
       });
     });
   }
+
+  return Promise.resolve();
 });
