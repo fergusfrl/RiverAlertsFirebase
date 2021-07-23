@@ -26,7 +26,7 @@ export const handleProfileChange = functions.firestore.document('users/{userId}'
   if (beforeEmail !== afterEmail) {
     return afterRef.ref.collection('alerts').get().then(snap => {
       snap.docs.forEach(doc => {
-        doc.ref.update({ email: afterEmail });
+        return doc.ref.update({ email: afterEmail });
       });
     });
   }
