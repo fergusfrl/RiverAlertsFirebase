@@ -18,6 +18,9 @@ const firestore = admin.firestore();
   })
 });
 
+/**
+ * On Profile Document Update.
+ */
 export const handleProfileChange = functions.firestore.document('users/{userId}').onUpdate((querySnap) => {
   const { beforeEmail } = querySnap.before.data();
   const afterRef = querySnap.after;
@@ -26,7 +29,11 @@ export const handleProfileChange = functions.firestore.document('users/{userId}'
   if (beforeEmail !== afterEmail) {
     return afterRef.ref.collection('alerts').get().then(snap => {
       snap.docs.forEach(doc => {
-        return doc.ref.update({ email: afterEmail });
+        return doc.ref.update({
+          contactPreference: {
+            email: afterEmail,
+          },
+        });
       });
     });
   }
