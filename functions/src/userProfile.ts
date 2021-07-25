@@ -33,11 +33,11 @@ export const handleProfileChange = functions.firestore.document('users/{userId}'
     return afterRef.ref.collection('alerts').get().then(snap => {
       snap.docs.forEach(doc => {
         console.log('DOC:', doc.data().name);
-        return doc.ref.update({
+        return doc.ref.set({
           contactPreference: {
             email: afterEmail,
           },
-        });
+        }, { merge: true });
       });
     });
   }
