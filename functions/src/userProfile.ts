@@ -26,9 +26,13 @@ export const handleProfileChange = functions.firestore.document('users/{userId}'
   const afterRef = querySnap.after;
   const { afterEmail } = afterRef.data();
 
+  console.log('BEFORE:', beforeEmail);
+  console.log('AFTER:', afterEmail);
+
   if (beforeEmail !== afterEmail) {
     return afterRef.ref.collection('alerts').get().then(snap => {
       snap.docs.forEach(doc => {
+        console.log('DOC:', doc.data().name);
         return doc.ref.update({
           contactPreference: {
             email: afterEmail,
