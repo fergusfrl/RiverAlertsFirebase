@@ -22,9 +22,9 @@ const firestore = admin.firestore();
  * On Profile Document Update.
  */
 export const handleProfileChange = functions.firestore.document('users/{userId}').onUpdate((querySnap) => {
-  const { beforeEmail } = querySnap.before.data();
+  const { email: beforeEmail } = querySnap.before.data();
   const afterRef = querySnap.after;
-  const { afterEmail } = afterRef.data();
+  const { email: afterEmail } = afterRef.data();
 
   console.log('BEFORE:', beforeEmail);
   console.log('AFTER:', afterEmail);
