@@ -4,3 +4,4 @@ admin.initializeApp();
 
 export { createUserProfile, handleProfileChange } from './userProfile';
 export { evaluateAlerts, addAlert, removeAlert, handleSendEmail } from './alerts';
+export { updateCurrentObservations } from './observations';
