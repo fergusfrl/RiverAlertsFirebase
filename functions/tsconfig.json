@@ -8,7 +8,8 @@
     "strict": true,
     "target": "es2017",
     "lib": [
-      "esnext.asynciterable"
+      "esnext.asynciterable",
+      "ES2020.Promise",
     ]
   },
   "compileOnSave": true,

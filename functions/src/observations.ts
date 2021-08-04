@@ -18,5 +18,5 @@ const getGauges = () => axios.post('https://data.riverguide.co.nz/', {
   const gauges: Gauge[] = gaugesResponse.data.features;
 
   const writePromises = gauges.map(gauge => admin.firestore().collection('currentObservations').doc(gauge.id).set({ ...gauge }));
-  return Promise.all(writePromises);
+  return Promise.allSettled(writePromises);
  });
